@@ -9,17 +9,19 @@ author: calllivecn
 '''
 
 import os
-import random
-import threading
+from threading import Timer
 from tkinter import *
 from tkinter import ttk
 
-import patternsLoader
+from numpy import random, ones, zeros, uint8
 
-from gameOfLifeWorld import *
+import patternsLoader
 
 class GameOfLifeWorld:
 
+    live = 1
+    dead = 0
+    life_chance = 0.4
     width = 100
     height = 100
     cells = []
@@ -29,9 +31,15 @@ class GameOfLifeWorld:
         self.height = height
 
     def InitRandom(self):
-        self.cells = [[LIVE if random.random() > 0.8 else DEAD for i in range(self.width)]
-                       for j in range(self.height)]
+        self.cells = zeros((self.width, self.height), dtype=uint8)
 
+        for i in range(self.width):
+            for j in range(self.height):
+                if random.random() > self.life_chance:
+                    cells[i][j] = 1
+                else:
+                    cells[i][j] = 0
+                    
     def TryGetCell(self, h, w):
         return self.cells[min(h, self.height - 1)][min(w, self.width - 1)]
 
