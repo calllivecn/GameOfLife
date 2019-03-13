@@ -14,4 +14,4 @@ A basic GameOfLife world.
 
 
 ## Screenshot
-![Screenshot](https://github.com/Pleiades0428/GameOfLife/blob/master/Demo/screenshots/screenshot.png)
+![Screenshot](Demo/screenshots/screenshot.png)
