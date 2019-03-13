@@ -52,6 +52,7 @@ def GetNearbyCellsCount(i, j):
 
 
 def Update():
+    global screen
     newScreen = [[' ' for i in range(width)]for j in range(height)]
     for i in range(height):
         for j in range(width):
@@ -62,7 +63,6 @@ def Update():
                 newScreen[i][j] = ' '
             else:
                 newScreen[i][j] = screen[i][j]
-    global screen
     screen = newScreen
 
 def Loop():
@@ -71,17 +71,20 @@ def Loop():
 
 
 def Start():
-    os.system("cls")
+    #os.system("cls")
+    os.system("clear")
     print('== Game of Life ==')
     print('Author: Pleiades')
     print('Press any key...')
     input()
-    os.system("cls")
+    #os.system("cls")
+    os.system("clear")
     Init()
     PrintScreen()
     c = input()
     while c != 'q':
-        os.system("cls")
+        #os.system("cls")
+        os.system("clear")
         Loop()
         c = input()
     print('End')
