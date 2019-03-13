@@ -39,7 +39,7 @@ class GameOfLife:
         buf = np.zeros(self.cells.shape)
         cells = self.cells
         for i in range(1, cells.shape[0] - 1):
-            for j in range(1, cells.shape[0] - 1):
+            for j in range(1, cells.shape[1] - 1):
                 # 计算该细胞周围的存活细胞数
                 neighbor = cells[i-1:i+2, j-1:j+2].reshape((-1, ))
                 neighbor_num = np.convolve(self.mask, neighbor, 'valid')[0]
