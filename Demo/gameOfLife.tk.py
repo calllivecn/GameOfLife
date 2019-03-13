@@ -11,6 +11,7 @@ import random
 import threading
 from tkinter import *
 from tkinter import ttk
+
 import patternsLoader
 
 from gameOfLifeWorld import *
@@ -25,6 +26,7 @@ cellSize = 5
 world = None
 currentPattern = None
 
+interval=0.2
 
 def PrintScreen():
     global canvas
@@ -59,7 +61,7 @@ def BtnStart_OnClick():
 def StartTimer():
     Loop()
     global timer
-    timer = threading.Timer(1, StartTimer)
+    timer = threading.Timer(interval, StartTimer)
     timer.start()
 
 
@@ -164,7 +166,7 @@ def Start():
     mainForm.mainloop()
 
 
-timer = threading.Timer(1, StartTimer)
+timer = threading.Timer(interval, StartTimer)
 
 if __name__ == "__main__":
     Start()
