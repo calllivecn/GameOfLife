@@ -5,9 +5,10 @@
 
 '''
 生命游戏
-1. 当一个细胞周围有3个细胞时，它当成存活。
+1. 当一个细胞周围有3个细胞时，它当成存活(不论之前是死是活，模拟生命繁殖)。
 2. 当一个细胞周围有2个细胞时，它状态不变(活就是活，死就是死)。
-3. 当一个细胞周围有大于3细胞存活时，它为死。(它会由于缺少生命资源，而死亡)
+3. 当一个细胞周围有大于3细胞存活时，它变为死亡。(它会由于缺少生命资源，而死亡)
+4. 当一个细胞周围有小于2个细胞时，它变成死。
 author: calllivecn
 '''
 
@@ -19,8 +20,32 @@ import tkinter as tk
 from numpy import random, ones, zeros, uint8, uint32, convolve
 
 
-PAUSE_LOCK = Lock()
 
+class Pause:
+
+    def __init__(self):
+        self.lock = Lock()
+        #self.lock.acquire()
+        self._pause = True
+
+    def pause(self):
+
+        #self.lock.acquire()
+
+        if self._pause:
+            self._pause = False
+        else:
+            self._pause = True
+
+        #self.lock.release()
+
+    def acquire(self):
+        self.lock.acquire()
+
+    def release(self):
+        self.lock.release()
+
+PAUSE = Pause()
 
 def runtime(func, *args, **kwargs):
     def f(*args, **kwargs):
@@ -117,8 +142,8 @@ class CanvasWorld:
         group = tk.LabelFrame(self.win, text="信息", padx=5, pady=5, width=120, height=500)
         group.pack(anchor=tk.W, side='right')
     
-        tk.Button(self.win, text='开始', command = lambda :run(self)).pack(anchor=tk.S, side='bottom') #.grid(row=1, column=0, sticky=tk.W, padx=50)
-        tk.Button(self.win, text='下个周期', command = lambda :print("pass")).pack(anchor=tk.S, side='bottom') #.grid(row=1, column=0, sticky=tk.E, padx=50)
+        tk.Button(self.win, text='开始', command = lambda :PAUSE.pause()).pack(side='bottom') #.grid(row=1, column=0, sticky=tk.W, padx=50)
+        tk.Button(self.win, text='下个周期', command = lambda :print("pass")).pack(side='bottom') #.grid(row=1, column=0, sticky=tk.E, padx=50)
     
     
     @runtime
@@ -168,29 +193,38 @@ def info(cells):
 def run(cell, canvas):
 
     try:
+
         while True:
-            t1 = time.time()
-            info(cell)
 
-            canvas.UpdateScreen(cell.cells)
-            canvas.skip(cell)
+            if PAUSE._pause:
+                t1 = time.time()
+                info(cell)
 
-            cell.Update()
+                canvas.UpdateScreen(cell.cells)
+                canvas.skip(cell)
 
-            t2 = time.time()
+                cell.Update()
 
-            if (t2 - t1) < 0.1:
+                t2 = time.time()
+
+                if (t2 - t1) < 0.1:
+                    time.sleep(0.1)
+
+            else:
                 time.sleep(0.1)
+
 
     except KeyboardInterrupt:
         pass
 
 
 def starttimer():
-    cells = GameOfLifeWorld(100,100)
+    cells = GameOfLifeWorld(200,200)
 
     canvas = CanvasWorld(cells.width, cells.height,5, 100)
 
+    canvas.UpdateScreen(cells.cells)
+    PAUSE._pause = False
     #canvas.InitScreen(cells.cells)
 
     runer = Thread(target=run, args=(cells, canvas), daemon=True)
