@@ -13,20 +13,21 @@ author: calllivecn
 
 import os
 import time
-from threading import Timer,Thread
+from threading import Timer, Thread, Lock
 import tkinter as tk
-from tkinter import ttk
 
 from numpy import random, ones, zeros, uint8, uint32, convolve
 
-#import patternsLoader
+
+PAUSE_LOCK = Lock()
+
 
 def runtime(func, *args, **kwargs):
     def f(*args, **kwargs):
         start = time.time()
         result = func(*args, **kwargs)
         end = time.time()
-        print(func.__name__, "运行耗时：", end - start, "s")
+        print(func.__name__, "运行耗时：", round(end - start, 3), "s")
         return result
     return f
 
@@ -34,7 +35,7 @@ class GameOfLifeWorld:
 
     life = 1
     dead = 0
-    life_chance = 0.3
+    life_chance = 0.2
     count = 0
 
     @runtime
@@ -151,17 +152,18 @@ class CanvasWorld:
     def start(self):
         self.win.mainloop()
 
+    def skip(self,cell):
+        if self.skip_count > 0:
+            for _ in range(self.skip_count):
+                cell.Update()
+    
+            self.skip_count = 0
 
 def info(cells):
     print("-"*60)
     print("迭代计数：{} cells数量：{}".format(cells.count, cells.life_cells))
 
-def skip(cell):
-    if cell.skip_count > 0:
-        for _ in range(cell.skip_count):
-            cell.Update()
 
-        cell.skip_count = 0
 
 def run(cell, canvas):
 
@@ -171,8 +173,8 @@ def run(cell, canvas):
             info(cell)
 
             canvas.UpdateScreen(cell.cells)
+            canvas.skip(cell)
 
-            skip(cell)
             cell.Update()
 
             t2 = time.time()
@@ -187,7 +189,9 @@ def run(cell, canvas):
 def starttimer():
     cells = GameOfLifeWorld(100,100)
 
-    canvas = CanvasWorld(cells.width, cells.height,5)
+    canvas = CanvasWorld(cells.width, cells.height,5, 100)
+
+    #canvas.InitScreen(cells.cells)
 
     runer = Thread(target=run, args=(cells, canvas), daemon=True)
     runer.start()
