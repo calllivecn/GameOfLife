@@ -12,13 +12,14 @@
 author: calllivecn
 '''
 
+__version__ = "v0.4"
+
 import os
 import time
 from threading import Timer, Thread, Lock
 import tkinter as tk
 
 import numpy as np
-
 
 
 class Pause:
@@ -60,13 +61,13 @@ class GameOfLifeWorld:
 
     life = 1
     dead = 0
-    life_chance = 0.2
 
     @runtime
-    def __init__(self, width=100, height=100):
+    def __init__(self, width=100, height=100, chance=0.2):
         self.width = width
         self.height = height
 
+        self.life_chance = chance
         self.count = 0
 
         self.count_time = 0
@@ -140,7 +141,7 @@ class CanvasWorld:
         self._pause = True
 
         self.win = tk.Tk()
-        self.win.title('生命游戏 v0.1')
+        self.win.title('生命游戏 {}'.format(__version__))
         #self.win.geometry('{}x{}'.format(self.world_width, self.world_height))
 
         self.frame_world = tk.Frame(self.win)
@@ -162,27 +163,39 @@ class CanvasWorld:
         self.start_pause = tk.StringVar(value="开始")
 
         # right frame
-        #group = tk.LabelFrame(self.frame_info, text="信息", background="#FFFF00", padx=1, pady=1, width=20)
-        tk.Label(self.frame_info, textvariable=self.info_count, anchor=tk.W, padx=1, pady=1, width=20).pack(anchor=tk.E)
-        tk.Label(self.frame_info, textvariable=self.info_cells_sum, anchor=tk.W, padx=1, pady=1, width=20).pack(anchor=tk.E)
-        tk.Label(self.frame_info, textvariable=self.info_count_time, anchor=tk.W, padx=1, pady=1, width=20).pack(anchor=tk.E)
-        tk.Label(self.frame_info, textvariable=self.info_display_time, anchor=tk.W, padx=1, pady=1, width=20).pack(anchor=tk.E)
+        tk.Label(self.frame_info, text="信息:", padx=1, pady=1).pack(anchor=tk.W, side='top')
+        tk.Label(self.frame_info, textvariable=self.info_count, anchor=tk.W, padx=1, pady=1, width=20).pack(anchor=tk.W, side='top')
+        tk.Label(self.frame_info, textvariable=self.info_cells_sum, anchor=tk.W, padx=1, pady=1, width=20).pack(anchor=tk.E, side='top')
+        tk.Label(self.frame_info, textvariable=self.info_count_time, anchor=tk.W, padx=1, pady=1, width=20).pack(anchor=tk.E, side='top')
+        tk.Label(self.frame_info, textvariable=self.info_display_time, anchor=tk.W, padx=1, pady=1, width=20).pack(anchor=tk.E, side='top')
 
         # 
-        self.entry_button1 = tk.Frame(self.frame_info)
+        tk.Label(self.frame_info, text="设置:", padx=1, pady=1).pack(anchor=tk.E, side='top')
+
+        frame_chance = tk.Frame(self.frame_info).pack(anchor=tk.W, side='top')
+        tk.Label(frame_chance, text="初始概率:", padx=1,pady=1, anchor=tk.W).pack(anchor=tk.W, side='left')
+
+        entry_chance = tk.Entry(frame_chance, width=4)
+        entry_chance.insert(0,self.cells.life_chance)
+        entry_chance.pack(anchor=tk.W, side='right', fill='x')
+
+        self.frame_btn = tk.Frame(self.frame_info)
+        self.frame_btn.pack(anchor=tk.W)
+
+        self.entry_button1 = tk.Frame(self.frame_btn)
         self.entry_button1.pack(fill='x')
 
         #tk.Label(self.entry_button1, text=).pack(side='left')
         
         tk.Button(self.entry_button1, text="快进世代:", command = self.button_skip).pack(side='left')
         
-        self.info_skip = tk.Entry(self.entry_button1,text="10")
+        self.info_skip = tk.Entry(self.entry_button1,text="10", width=8)
         self.info_skip.insert(0, "10")
         self.info_skip.pack(fill='y')
 
     
-        tk.Button(self.frame_info, textvariable=self.start_pause, command = self.__pause).pack(side='bottom') #.grid(row=1, column=0, sticky=tk.W, padx=50)
-        tk.Button(self.frame_info, text='下个世代', command = self.UpdateOne).pack(side='bottom') #.grid(row=1, column=0, sticky=tk.E, padx=50)
+        tk.Button(self.frame_btn, textvariable=self.start_pause, command = self.__pause).pack() #.grid(row=1, column=0, sticky=tk.W, padx=50)
+        tk.Button(self.frame_btn, text='下个世代', command = self.UpdateOne).pack() #.grid(row=1, column=0, sticky=tk.E, padx=50)
     
     
     @runtime
@@ -283,7 +296,6 @@ def info(cells):
 
 
 def run(cell, canvas):
-
     try:
 
         while True:
@@ -294,7 +306,6 @@ def run(cell, canvas):
                 t1 = time.time()
 
                 canvas.UpdateScreen()
-                canvas.skip()
 
                 cell.Update()
 
