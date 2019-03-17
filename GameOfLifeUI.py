@@ -217,6 +217,8 @@ class CanvasWorld:
 
         start = time.time()
 
+        self.cells.Update()
+
         i_s, j_s = self.cells.cells.shape
         for j in range(j_s):
             for i in range(i_s):
@@ -307,15 +309,11 @@ def run(cell, canvas):
 
                 canvas.UpdateScreen()
 
-                cell.Update()
-
                 t2 = time.time()
 
                 interval = t2 -t1
                 if interval < 0.1:
                     time.sleep(0.1 - interval)
-
-
 
     except KeyboardInterrupt:
         pass
