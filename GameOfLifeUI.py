@@ -47,12 +47,6 @@ class GameOfLifeWorld:
 
         self.count_time = 0
         self.cells = np.zeros((self.width, self.height), dtype=np.uint8)
-        #self.buffer = self.cells.copy()
-        self.buffer = np.zeros((self.width, self.height), dtype=np.uint8)
-
-        self.mask = np.ones(9)
-        self.mask[4] = 0
-
 
         for i in range(self.width):
             for j in range(self.height):
@@ -61,39 +55,13 @@ class GameOfLifeWorld:
                 else:
                     self.cells[i][j] = self.dead
 
-        self.life_init_cells = self.cells.sum()
-        self.life_cells = self.life_init_cells
-
-    def Update(self):
-        """更新一次"""
-        start = time.time()
-        for i in range(1, self.cells.shape[0] - 1):
-            for j in range(1, self.cells.shape[1] - 1):
-                #计算cell周围的存活细胞数
-                neihbor = self.cells[i-1:i+2, j-1:j+2]
-                neihbor = neihbor.reshape((-1,))
-                num = np.convolve(self.mask, neihbor, 'valid')[0]
-
-                if num == 3:
-                    self.buffer[i, j] = self.life
-                elif num == 2:
-                    self.buffer[i, j] = self.cells[i, j]
-                else:
-                    self.buffer[i, j] = 0
-
-        tmp = self.buffer
-        self.buffer = self.cells
-        self.cells = tmp
-        print("cells sum : {} \t buffer sum : {}".format(self.cells.sum(), self.buffer.sum()))
-
         self.life_cells = self.cells.sum()
 
-        self.buffer.fill(0)
-
+    def updateinfo(self, cells):
+        print("cells: ", cells.sum())
+        self.cells = cells
+        self.life_cells = self.cells.sum()
         self.count += 1
-
-        end = time.time()
-        self.count_time = round(end - start, 3)
 
 
 class CanvasWorld:
@@ -110,6 +78,7 @@ class CanvasWorld:
 
         self.refresh = 0.1
 
+        self.count = 0
         self.display_time = 0
 
         self._pause = True
@@ -131,8 +100,8 @@ class CanvasWorld:
 
         self.info_count = tk.StringVar(value="世代:{}代".format(0))
         self.info_cells_sum = tk.StringVar(value="生命数:{}个".format(0))
-        self.info_display_time = tk.StringVar(value="显示用时:{}s".format(self.display_time))
-        self.info_count_time = tk.StringVar(value="世代用时:{}s".format(0))
+        #self.info_display_time = tk.StringVar(value="显示用时:{}s".format(0))
+        #self.info_count_time = tk.StringVar(value="世代用时:{}s".format(0))
 
         self.start_pause = tk.StringVar(value="开始")
 
@@ -140,18 +109,18 @@ class CanvasWorld:
         ttk.Label(self.frame_info, text="信息:").pack(anchor=tk.W, side='top')
         ttk.Label(self.frame_info, textvariable=self.info_count, anchor=tk.W, width=20).pack(anchor=tk.W, side='top')
         ttk.Label(self.frame_info, textvariable=self.info_cells_sum, anchor=tk.W, width=20).pack(anchor=tk.W, side='top')
-        ttk.Label(self.frame_info, textvariable=self.info_count_time, anchor=tk.W, width=20).pack(anchor=tk.W, side='top')
-        ttk.Label(self.frame_info, textvariable=self.info_display_time, anchor=tk.W, width=20).pack(anchor=tk.W, side='top')
+        #3ttk.Label(self.frame_info, textvariable=self.info_count_time, anchor=tk.W, width=20).pack(anchor=tk.W, side='top')
+        #ttk.Label(self.frame_info, textvariable=self.info_display_time, anchor=tk.W, width=20).pack(anchor=tk.W, side='top')
 
         # 
 
-        frame_chance = ttk.Frame(self.frame_info).pack(side='top')
-        ttk.Label(frame_chance, text="设置:").pack(anchor=tk.W, side='top')
-        ttk.Label(frame_chance, text="初始概率:", anchor=tk.W).pack(anchor=tk.W, side='left')
+        #frame_chance = ttk.Frame(self.frame_info).pack(side='top')
+        #ttk.Label(frame_chance, text="设置:").pack(anchor=tk.W, side='top')
+        #ttk.Label(frame_chance, text="初始概率:", anchor=tk.W).pack(anchor=tk.W, side='left')
 
-        entry_chance = ttk.Entry(frame_chance, width=4)
-        entry_chance.insert(0,"10")
-        entry_chance.pack(anchor=tk.W, side='right', fill='x')
+        #entry_chance = ttk.Entry(frame_chance, width=4)
+        #entry_chance.insert(0,"10")
+        #entry_chance.pack(anchor=tk.W, side='right', fill='x')
 
         self.frame_btn = ttk.Frame(self.frame_info)
         self.frame_btn.pack(anchor=tk.W)
@@ -161,15 +130,15 @@ class CanvasWorld:
 
         #ttk.Label(self.entry_button1, text=).pack(side='left')
         
-        ttk.Button(self.entry_button1, text="快进世代:", command = self.skip).pack(side='left')
+        ttk.Button(self.entry_button1, text="快进:", command = self.skip).pack(side='left')
         
         self.info_skip = ttk.Entry(self.entry_button1,text="10", width=8)
         self.info_skip.insert(0, "10")
-        self.info_skip.pack(fill='y')
+        self.info_skip.pack(fill='x')
 
     
         ttk.Button(self.frame_btn, textvariable = self.start_pause, command = lambda :self.__pause()).pack() #.grid(row=1, column=0, sticky=tk.W, padx=50)
-        ttk.Button(self.frame_btn, text='下个世代', command = self.UpdateOne).pack() #.grid(row=1, column=0, sticky=tk.E, padx=50)
+        #ttk.Button(self.frame_btn, text='下个世代', command = self.UpdateOne).pack() #.grid(row=1, column=0, sticky=tk.E, padx=50)
     
     
     def InitScreen(self, cells):
@@ -189,8 +158,6 @@ class CanvasWorld:
 
         start = time.time()
 
-        #cells.Update()
-
         i_s, j_s = cells.shape
         for j in range(j_s):
             for i in range(i_s):
@@ -204,30 +171,18 @@ class CanvasWorld:
                     self.canvas.delete(tag)
 
 
-        # 更新cells信息
         end = time.time()
+        self.count += 1
+        self.life_sum = cells.sum()
         self.display_time = round(end - start, 3)
 
-        #self.__info()
-
-    def UpdateOne(self, lock):
-        self.cells.Update()
-        #self.__info()
-        self.start_pause.set("开始")
-
-        if lock._pause:
-            self.UpdateScreen()
-        else:
-            lock._pause = True
-            self.UpdateScreen()
-
-
+        self.__info()
 
     def __info(self):
-        self.info_count.set("世代：{}代".format(self.cells.count))
-        self.info_cells_sum.set("生命数:{}个".format(self.cells.life_cells))
-        self.info_display_time.set("显示用时:{}s".format(self.display_time))
-        self.info_count_time.set("世代用时:{}s".format(self.cells.count_time))
+        self.info_count.set("世代：{}代".format(self.count))
+        self.info_cells_sum.set("生命数:{}个".format(self.life_sum))
+        #self.info_display_time.set("显示用时:{}s".format(self.display_time))
+        #self.info_count_time.set("世代用时:{}s".format(cells.count_time))
 
     def __pause(self):
         if self._pause:
@@ -251,38 +206,74 @@ class CanvasWorld:
             count = 10
             self.info_skip.set("10")
         
-        for _ in range(count):
-            self.cells.Update()
+        skip(count)
 
         self._pause = True
 
-QUEUE = mp.Queue(1)
 
-def info(cells):
-    print("-"*60)
-    print("迭代计数：{} cells数量：{}".format(cells.count, cells.life_cells))
+QUEUE = mp.Queue(8)
 
 
-def run(canvas, queue):
+def skip(count):
+    for _ in range(count):
+        QUEUE.get()
+
+    canvas.__info()
+
+def run(canvas, cells, queue):
     while True:
-        t1 = time.time()
+        if canvas._pause:
+            time.sleep(0.1)
+        else:
+            t1 = time.time()
 
-        numpy_cells = queue.get()
+            data = queue.get()
 
-        canvas.UpdateScreen(numpy_cells)
+            canvas.UpdateScreen(data)
 
-        t2 = time.time()
+            t2 = time.time()
 
-        interval = round(t2 - t1, 3)
-        if interval < 0.1:
-            time.sleep(0.1 - interval)
+            interval = round(t2 - t1, 3)
+            if interval < 0.1:
+                time.sleep(0.1 - interval)
 
-def task(cell, queue):
+def task(queue, cell):
+    """更新一次"""
+
+    life = 1
+    dead = 0
+
+    buffer = np.zeros(cell.shape, dtype=np.uint8)
+    mask = np.ones(9)
+    mask[4] = 0
+
+    print("cell: ",cell.sum())
+
     while True:
-        print("task: queue")
-        cell.Update()
-        data = cell.cells.copy()
-        queue.put(data)
+        #print("task: queue")
+
+        for i in range(1, cell.shape[0] - 1):
+            for j in range(1, cell.shape[1] - 1):
+                #计算cell周围的存活细胞数
+                neihbor = cell[i-1:i+2, j-1:j+2]
+                neihbor = neihbor.reshape((-1,))
+                num = np.convolve(mask, neihbor, 'valid')[0]
+
+                if num == 3:
+                    buffer[i, j] = life
+                elif num == 2:
+                    buffer[i, j] = cell[i, j]
+                else:
+                    buffer[i, j] = dead
+
+        queue.put(buffer)
+
+        tmp = cell
+        cell = buffer
+        buffer = tmp
+
+        buffer.fill(0)
+
 
 def starttimer():
     cells = GameOfLifeWorld(100,100)
@@ -290,19 +281,17 @@ def starttimer():
     canvas = CanvasWorld()
 
     canvas.UpdateScreen(cells.cells)
-    #canvas.InitScreen()
 
-    runer = Thread(target=run, args=(canvas, QUEUE), daemon=True)
+    runer = Thread(target=run, args=(canvas, cells, QUEUE), daemon=True)
     runer.start()
 
-    runner = mp.Process(target=task, args=(cells, QUEUE))
-    runner.start()
+    calculate = mp.Process(target=task, args=(QUEUE, cells.cells), daemon=True)
+    calculate.start()
 
     canvas.start()
 
-    runner.terminate()
-
-
 if __name__ == "__main__":
-    starttimer()
-    #test()
+    try:
+        starttimer()
+    except KeyboardInterrupt:
+        exi(0)
